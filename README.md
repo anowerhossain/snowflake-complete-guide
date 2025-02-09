@@ -55,3 +55,11 @@ VALUES (1, PARSE_JSON('{"name": "Alice", "age": 30}'));
 ```sql
 SELECT data:name::STRING AS customer_name FROM json_data;
 ```
+
+❄️ Loading Data into Snowflake
+
+- Create a stage
+
+```sql
+CREATE OR REPLACE STAGE my_stage;
+```
