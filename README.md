@@ -138,3 +138,82 @@ ORDER BY START_TIME DESC
 LIMIT 50;
 ```
 This query will return the specific `query_id` you are looking for.
+
+
+❄️ Stream for Change Data Capture (CDC)
+
+```sql
+CREATE OR REPLACE STREAM customer_changes 
+ON TABLE customers;
+```
+This creates a stream called customer_changes on the customers table.
+
+- Every time a record is added, updated, or deleted, the stream captures the changes.
+- You can query the customer_changes stream just like a table:
+
+```sql
+SELECT * FROM customer_changes;
+```
+
+
+❄️ Masking Policy for sensitive data
+- First create a masking policy 
+
+```sql
+CREATE MASKING POLICY emp_salary_mask
+AS (val STRING) 
+RETURNS STRING ->
+  CASE
+    WHEN CURRENT_ROLE() IN ('HR_ROLE') THEN val
+    ELSE 'XXX-XXX-XXX'
+  END;
+```
+
+- Use the masking policy in the column definition
+
+```sql
+CREATE OR REPLACE TABLE employees (
+  emp_id INT,
+  emp_name STRING,
+  emp_salary STRING MASKING POLICY emp_salary_mask -- Here emp_salary column use the masking policy
+);
+```
+
+- Insert some data to see the effect
+
+```sql
+-- Insert sample data into the employees table
+INSERT INTO employees (emp_id, emp_name, emp_salary) 
+VALUES 
+(1, 'John Doe', '50000'),
+(2, 'Jane Smith', '60000'),
+(3, 'Sam Brown', '55000');
+```
+
+
+- Assuming you have the HR_ROLE
+
+```sql
+SET ROLE HR_ROLE;
+SELECT * FROM employees;
+```
+
+| emp_id | emp_name   | emp_salary |
+|--------|------------|------------|
+| 1      | John Doe   | 50000      |
+| 2      | Jane Smith | 60000      |
+| 3      | Sam Brown  | 55000      |
+
+
+- Assuming you are using a role without HR_ROLE
+
+```sql
+SET ROLE PUBLIC;  -- or any other role without HR_ROLE
+SELECT * FROM employees;
+```
+
+| emp_id | emp_name   | emp_salary |
+|--------|------------|------------|
+| 1      | John Doe   | XXX-XXX-XXX|
+| 2      | Jane Smith | XXX-XXX-XXX|
+| 3      | Sam Brown  | XXX-XXX-XXX|
