@@ -217,3 +217,21 @@ SELECT * FROM employees;
 | 1      | John Doe   | XXX-XXX-XXX|
 | 2      | Jane Smith | XXX-XXX-XXX|
 | 3      | Sam Brown  | XXX-XXX-XXX|
+
+
+
+
+❄️ Making a task and scheduled it with 
+
+```sql
+CREATE OR REPLACE TASK process_customer_change
+SCHEDULE = '2 MINUTE'
+AS
+INSERT INTO customer_logs
+SELECT * FROM customers;
+```
+- By default, task are pause make it resume
+```sql
+ALTER TASK process_customer_change RESUME;
+```
+After 2 minutes the task will triggered and we get the refection on the `customer_logs` table. 
